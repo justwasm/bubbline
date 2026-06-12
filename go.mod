@@ -1,4 +1,4 @@
-module github.com/knz/bubbline
+module github.com/justwasm/bubbline
 
 go 1.25.0
 

@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/knz/bubbline"
-	"github.com/knz/bubbline/complete"
-	"github.com/knz/bubbline/computil"
-	"github.com/knz/bubbline/editline"
+	"github.com/justwasm/bubbline"
+	"github.com/justwasm/bubbline/complete"
+	"github.com/justwasm/bubbline/computil"
+	"github.com/justwasm/bubbline/editline"
 )
 
 func main() {

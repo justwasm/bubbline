@@ -7,7 +7,7 @@ import (
 	"log"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/knz/bubbline/editline"
+	"github.com/justwasm/bubbline/editline"
 )
 
 func main() {

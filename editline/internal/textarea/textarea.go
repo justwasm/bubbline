@@ -14,7 +14,7 @@ import (
 	"github.com/atotto/clipboard"
 	"charm.land/bubbles/v2/cursor"
 	"charm.land/bubbles/v2/key"
-	"github.com/knz/bubbline/editline/internal/runeutil"
+	"github.com/justwasm/bubbline/editline/internal/runeutil"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
