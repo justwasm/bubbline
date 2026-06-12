@@ -10,12 +10,12 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/charmbracelet/bubbles/cursor"
-	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/cursor"
+	"charm.land/bubbles/v2/help"
+	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/knz/bubbline/complete"
 	"github.com/knz/bubbline/editline/internal/textarea"
 	rw "github.com/mattn/go-runewidth"
@@ -339,17 +339,19 @@ func (m *Model) Value() string {
 // it can receive keyboard input and the cursor is displayed.
 func (m *Model) Focus() tea.Cmd {
 	_ = m.text.Cursor.SetMode(m.CursorMode)
-	_ = m.hctrl.pattern.Cursor.SetMode(m.CursorMode)
 	m.text.KeyMap = m.KeyMap.KeyMap
 	m.text.Placeholder = m.Placeholder
 	m.text.ShowLineNumbers = m.ShowLineNumbers
 	m.text.FocusedStyle = m.FocusedStyle.Editor
 	m.text.BlurredStyle = m.BlurredStyle.Editor
 	m.updatePrompt()
-	m.hctrl.pattern.PromptStyle = m.FocusedStyle.SearchInput.PromptStyle
-	m.hctrl.pattern.TextStyle = m.FocusedStyle.SearchInput.TextStyle
-	m.hctrl.pattern.PlaceholderStyle = m.FocusedStyle.SearchInput.PlaceholderStyle
-	m.hctrl.pattern.CursorStyle = m.FocusedStyle.SearchInput.CursorStyle
+	styles := m.hctrl.pattern.Styles()
+	styles.Focused.Prompt = m.FocusedStyle.SearchInput.PromptStyle
+	styles.Focused.Text = m.FocusedStyle.SearchInput.TextStyle
+	styles.Focused.Placeholder = m.FocusedStyle.SearchInput.PlaceholderStyle
+	styles.Cursor.Color = nil
+	styles.Cursor.Blink = m.CursorMode != cursor.CursorStatic
+	m.hctrl.pattern.SetStyles(styles)
 	m.completions.Focus()
 
 	var cmd tea.Cmd
@@ -366,10 +368,11 @@ func (m *Model) Blur() {
 	m.hctrl.pattern.Blur()
 	m.text.Blur()
 	m.completions.Blur()
-	m.hctrl.pattern.PromptStyle = m.BlurredStyle.SearchInput.PromptStyle
-	m.hctrl.pattern.TextStyle = m.BlurredStyle.SearchInput.TextStyle
-	m.hctrl.pattern.PlaceholderStyle = m.BlurredStyle.SearchInput.PlaceholderStyle
-	m.hctrl.pattern.CursorStyle = m.BlurredStyle.SearchInput.CursorStyle
+	styles := m.hctrl.pattern.Styles()
+	styles.Blurred.Prompt = m.BlurredStyle.SearchInput.PromptStyle
+	styles.Blurred.Text = m.BlurredStyle.SearchInput.TextStyle
+	styles.Blurred.Placeholder = m.BlurredStyle.SearchInput.PlaceholderStyle
+	m.hctrl.pattern.SetStyles(styles)
 }
 
 // Init is part of the tea.Model interface.
@@ -519,10 +522,14 @@ func (m *Model) hidePrompt(b bool) {
 	m.promptHidden = b
 	if b {
 		m.text.Cursor.SetMode(cursor.CursorStatic)
-		m.hctrl.pattern.Cursor.SetMode(cursor.CursorStatic)
+		styles := m.hctrl.pattern.Styles()
+		styles.Cursor.Blink = false
+		m.hctrl.pattern.SetStyles(styles)
 	} else {
 		m.text.Cursor.SetMode(m.CursorMode)
-		m.hctrl.pattern.Cursor.SetMode(m.CursorMode)
+		styles := m.hctrl.pattern.Styles()
+		styles.Cursor.Blink = m.CursorMode != cursor.CursorStatic
+		m.hctrl.pattern.SetStyles(styles)
 	}
 }
 
@@ -675,8 +682,8 @@ func (m *Model) setWidth(w int) {
 	w = clamp(w, 1, m.maxWidth)
 	m.text.SetWidth(w - 1)
 	m.completions.SetWidth(w - 1)
-	m.hctrl.pattern.Width = w - 1
-	m.help.Width = w - 1
+	m.hctrl.pattern.SetWidth(w - 1)
+	m.help.SetWidth(w - 1)
 }
 
 // DefaultReflow is the default/initial value of Reflow.
@@ -727,7 +734,7 @@ func (m *Model) reflowAll() (cmd tea.Cmd) {
 // handleSearching navigates through the history search.
 func (m *Model) handleSearching(imsg tea.Msg) (stillSearching bool, restMsg tea.Msg, cmd tea.Cmd) {
 	switch msg := imsg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.KeyMap.EndOfInput):
 			if m.hctrl.pattern.Position() == 0 {
@@ -755,10 +762,10 @@ func (m *Model) handleSearching(imsg tea.Msg) (stillSearching bool, restMsg tea.
 			return false, nil, nil
 
 		default:
-			if !msg.Alt && (msg.Type == tea.KeySpace ||
-				msg.Type == tea.KeyBackspace ||
-				msg.Type == tea.KeyCtrlH ||
-				msg.Type == tea.KeyRunes) {
+			if !msg.Mod.Contains(tea.ModAlt) && (msg.Code == tea.KeySpace ||
+				msg.Code == tea.KeyBackspace ||
+				(msg.Code == 'h' && msg.Mod.Contains(tea.ModCtrl)) ||
+				len(msg.Text) > 0) {
 				// Handle by widget below.
 				break
 			}
@@ -843,7 +850,7 @@ func (m *Model) Update(imsg tea.Msg) (tea.Model, tea.Cmd) {
 	m.lastEvent = imsg
 
 	switch msg := imsg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.KeyMap.Debug):
 			m.debugMode = !m.debugMode
@@ -915,7 +922,7 @@ func (m *Model) Update(imsg tea.Msg) (tea.Model, tea.Cmd) {
 		m.text.SetValue(msg.newText)
 		imsg = nil
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.KeyMap.AutoComplete):
 			if m.AutoComplete == nil {
@@ -1047,7 +1054,7 @@ func (m *Model) Reset() {
 
 // View renders the text area in its current state.
 // This is part of the tea.Model interface.
-func (m Model) View() string {
+func (m Model) View() tea.View {
 	var buf strings.Builder
 	if m.debugMode {
 		buf.WriteString(
@@ -1061,7 +1068,7 @@ func (m Model) View() string {
 	}
 
 	if m.showCompletions {
-		buf.WriteString(m.completions.View())
+		buf.WriteString(m.completions.View().Content)
 		buf.WriteByte('\n')
 	}
 	buf.WriteString(m.text.View())
@@ -1072,7 +1079,7 @@ func (m Model) View() string {
 		buf.WriteByte('\n')
 		buf.WriteString(m.help.View(m))
 	}
-	return buf.String()
+	return tea.NewView(buf.String())
 }
 
 // ShortHelp is part of the help.KeyMap interface.

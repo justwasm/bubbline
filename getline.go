@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/knz/bubbline/complete"
 	"github.com/knz/bubbline/editline"
 	"github.com/knz/bubbline/history"

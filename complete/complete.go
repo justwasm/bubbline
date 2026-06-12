@@ -5,10 +5,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	rw "github.com/mattn/go-runewidth"
 	"github.com/muesli/reflow/truncate"
 )
@@ -62,8 +62,9 @@ type Styles struct {
 // DefaultStyles returns a set of default style definitions for the
 // completions component.
 var DefaultStyles = func() (c Styles) {
-	ls := list.DefaultStyles()
-	subtle := lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
+	ls := list.DefaultStyles(false)
+	lightDark := lipgloss.LightDark(false)
+	subtle := lightDark(lipgloss.Color("#D9DCCF"), lipgloss.Color("#383838"))
 
 	c.Item = lipgloss.NewStyle().PaddingLeft(1)
 	c.SelectedItem = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("170"))
@@ -73,8 +74,8 @@ var DefaultStyles = func() (c Styles) {
 	c.FocusedTitle = lipgloss.NewStyle().Background(lipgloss.Color("62")).Foreground(lipgloss.Color("230"))
 	c.BlurredTitle = c.FocusedTitle.Copy().Foreground(subtle)
 	c.Spinner = ls.Spinner
-	c.FilterPrompt = ls.FilterPrompt
-	c.FilterCursor = ls.FilterCursor
+	c.FilterPrompt = ls.Filter.Focused.Prompt
+	c.FilterCursor = lipgloss.NewStyle()
 	c.PaginationStyle = lipgloss.NewStyle()
 	c.DefaultFilterCharacterMatch = ls.DefaultFilterCharacterMatch
 	c.ActivePaginationDot = ls.ActivePaginationDot
@@ -313,7 +314,7 @@ func (m *Model) SetValues(values Values) {
 
 // MatchesKeys returns true when the completion
 // editor can use the given key message.
-func (m *Model) MatchesKey(msg tea.KeyMsg) bool {
+func (m *Model) MatchesKey(msg tea.KeyPressMsg) bool {
 	if !m.focused || len(m.valueLists) == 0 {
 		return false
 	}
@@ -398,7 +399,7 @@ func (m *Model) Update(imsg tea.Msg) (tea.Model, tea.Cmd) {
 
 	curList := m.valueLists[m.selectedList]
 	switch msg := imsg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.KeyMap.Abort):
 			m.AcceptedValue = nil
@@ -443,7 +444,7 @@ func (m *Model) Update(imsg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View implements the tea.Model interface.
-func (m *Model) View() string {
+func (m *Model) View() tea.View {
 	contents := make([]string, len(m.valueLists))
 	for i, l := range m.valueLists {
 		contents[i] = l.View()
@@ -462,7 +463,7 @@ func (m *Model) View() string {
 			desc = m.Styles.PlaceholderDescription.Render(fmt.Sprintf("(entry %q has no description)", item.Title()))
 		}
 	}
-	return result + "\n" + desc
+	return tea.NewView(result + "\n" + desc)
 }
 
 // ShortHelp is part of the help.KeyMap interface.

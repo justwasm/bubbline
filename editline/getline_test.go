@@ -9,15 +9,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/bubbles/cursor"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/cursor"
+	tea "charm.land/bubbletea/v2"
 	"github.com/cockroachdb/datadriven"
 	"github.com/knz/bubbline"
 	"github.com/knz/bubbline/computil"
 	"github.com/knz/bubbline/editline"
 	"github.com/knz/catwalk"
-	"github.com/muesli/termenv"
 )
 
 // TestBubbline tests the bubbline widget and the Editor API.
@@ -31,11 +29,6 @@ func TestBubbline(t *testing.T) {
 		}
 
 		m := bubbline.New()
-
-		// Ensure the cursor is visible in the test outputs. We want this
-		// because we want to check that event processing positions the
-		// cursor correctly.
-		lipgloss.SetColorProfile(termenv.ANSI)
 
 		catwalk.RunModel(t, path, m,
 			catwalk.WithUpdater(testCmd),

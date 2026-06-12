@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/knz/bubbline/computil"
 	"github.com/knz/bubbline/editline"
 )
