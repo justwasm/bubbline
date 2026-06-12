@@ -69,7 +69,7 @@ func (m *Editor) GetLine() (string, error) {
 		}
 	}()
 	// Create a Bubbletea program to handle our input.
-	p := tea.NewProgram(m, tea.WithoutSignalHandler(), tea.WithContext(ctx))
+	p := tea.NewProgram(m, tea.WithoutSignalHandler(), tea.WithContext(ctx), tea.WithInput(os.Stdin), tea.WithOutput(os.Stdout))
 	m.Reset()
 	if _, err := p.Run(); err != nil {
 		// Was a signal received?
