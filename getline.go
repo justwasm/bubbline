@@ -54,7 +54,7 @@ var ErrInterrupted = editline.ErrInterrupted
 var ErrTerminated = errors.New("terminated")
 
 // Getline runs the editor and returns the line that was read.
-func (m *Editor) GetLine() (string, error) {
+func (m *Editor) GetLine(opts ...tea.ProgramOption) (string, error) {
 	// We don't like the default handling of SIGINT/SIGTERM. Provide our own.
 	ctx, cancel := context.WithCancel(context.Background())
 	ch := make(chan os.Signal, 1)
@@ -69,7 +69,11 @@ func (m *Editor) GetLine() (string, error) {
 		}
 	}()
 	// Create a Bubbletea program to handle our input.
-	p := tea.NewProgram(m, tea.WithoutSignalHandler(), tea.WithContext(ctx), tea.WithInput(os.Stdin), tea.WithOutput(os.Stdout))
+	opts = append([]tea.ProgramOption{
+		tea.WithoutSignalHandler(),
+		tea.WithContext(ctx),
+	}, opts...)
+	p := tea.NewProgram(m, opts...)
 	m.Reset()
 	if _, err := p.Run(); err != nil {
 		// Was a signal received?
