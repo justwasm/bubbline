@@ -47,6 +47,8 @@ type Style struct {
 // the textarea.
 func DefaultStyles() (Style, Style) {
 	ts1, ts2 := textarea.DefaultStyles()
+	ts1.CursorLine = ts1.CursorLine.Background(lipgloss.NoColor{})
+	ts2.CursorLine = ts2.CursorLine.Background(lipgloss.NoColor{})
 	fs := Style{Editor: ts1}
 	bs := Style{Editor: ts2}
 	fs.SearchInput.PlaceholderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
