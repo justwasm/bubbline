@@ -81,7 +81,7 @@ var DefaultKeyMap = KeyMap{
 	DeleteCharacterForward:  key.NewBinding(key.WithKeys("delete", "ctrl+d"), key.WithHelp("C-d/del", "del next char")),
 	LineStart:               key.NewBinding(key.WithKeys("home", "ctrl+a"), key.WithHelp("C-a/home", "start of line")),
 	LineEnd:                 key.NewBinding(key.WithKeys("end", "ctrl+e"), key.WithHelp("C-e/end", "end of line")),
-	Paste:                   key.NewBinding(key.WithKeys("ctrl+v"), key.WithHelp("C-v", "paste")),
+	Paste:                   key.NewBinding(key.WithKeys("ctrl+v", "super+v"), key.WithHelp("C-v/Cmd-v", "paste")),
 	InputBegin:              key.NewBinding(key.WithKeys("alt+<", "ctrl+home"), key.WithHelp("M-</C-home", "go to begin")),
 	InputEnd: key.NewBinding(key.WithKeys("alt+>", "ctrl+end"),
 		key.WithHelp("M->/C-end", "go to end")),
