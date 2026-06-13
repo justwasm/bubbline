@@ -200,6 +200,10 @@ type Model struct {
 	// Only takes effect at Reset() or Focus().
 	ShowLineNumbers bool
 
+	// ShowHelp if true displays the help line at the bottom of the editor.
+	// Only takes effect at Reset() or Focus().
+	ShowHelp bool
+
 	// externalEditorExt is the extension to use when creating a temporary file for
 	// an external editor.
 	externalEditorExt string
@@ -259,6 +263,7 @@ func New(width, height int) *Model {
 		SearchPromptNotFound: "bck?",
 		SearchPromptInvalid:  "bck!",
 		ShowLineNumbers:      false,
+		ShowHelp:             true,
 		help:                 help.New(),
 		completions:          complete.New(),
 	}
@@ -1077,7 +1082,7 @@ func (m Model) View() tea.View {
 	if m.currentlySearching() {
 		buf.WriteByte('\n')
 		buf.WriteString(m.hctrl.pattern.View())
-	} else {
+	} else if m.ShowHelp {
 		buf.WriteByte('\n')
 		buf.WriteString(m.help.View(m))
 	}
