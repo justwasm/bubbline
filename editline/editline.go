@@ -857,6 +857,11 @@ func (m *Model) Update(imsg tea.Msg) (tea.Model, tea.Cmd) {
 	m.lastEvent = imsg
 
 	switch msg := imsg.(type) {
+	case tea.FocusMsg:
+		return m, tea.Batch(cmd, m.text.Focus())
+	case tea.BlurMsg:
+		m.text.Blur()
+		return m, nil
 	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.KeyMap.Debug):
@@ -1085,7 +1090,9 @@ func (m Model) View() tea.View {
 	} else if m.ShowHelp {
 		buf.WriteString(m.help.View(m))
 	}
-	return tea.NewView(buf.String())
+	v := tea.NewView(buf.String())
+	v.ReportFocus = true
+	return v
 }
 
 // ShortHelp is part of the help.KeyMap interface.
